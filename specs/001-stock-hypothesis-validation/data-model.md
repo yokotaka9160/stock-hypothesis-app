@@ -1,0 +1,95 @@
+# Data Model: 株式取引 仮説検証
+
+## Hypothesis（仮説）
+## Hypothesis（仮説）
+| 項目 | 内容 |
+|---|---|
+| id | 識別子 |
+| text | 利用者が入力した仮説の文章 |
+| parsed | 文章を読み取った結果（トリガー条件・購入条件・購入方法・売却条件） |
+| created_at / updated_at | 作成日時・更新日時 |
+
+- `parsed` は保存時に一度だけ作成し、検証にはこれを使う（FR-018）
+- `parsed` を利用者が確認してから保存する（FR-016）
+- 読み取りに失敗した場合は保存しない（FR-017）
+
+- 編集・削除ができる（FR-003）
+
+## VerificationRun（検証の実行）
+| 項目 | 内容 |
+|---|---|
+| id | 識別子 |
+| hypothesis | 対象の仮説（検証した時点の仮説の内容も保存する）（仮） |
+| symbols | 銘柄（複数） |
+| period_start / period_end | 検証期間 |
+| amount | 購入金額 |
+| status | 成功／失敗 |
+| error_message | 失敗したときのエラー文（FR-010-7） |
+| created_at | 実行日時 |
+
+## SymbolResult（銘柄ごとの結果）
+| 項目 | 内容 |
+|---|---|
+| run | 対象の検証 |
+| symbol | 銘柄 |
+| trade_count | 取引回数 |
+| pnl | 損益額 |
+| unavailable | 検証不可かどうか（FR-009） |
+
+- 全銘柄の合計は、SymbolResult から計算する（FR-007）（仮）
+
+## Trade（取引）
+| 項目 | 内容 |
+|---|---|
+| result | 対象の銘柄ごとの結果 |
+| buy_at / buy_price | 購入日時・購入価格 |
+| order_type | 逆指値／指値 |
+| quantity | 株数 |
+| sell_at / sell_price | 売却日時・売却価格 |
+| pnl | 損益額 |
+
+- 逆指値・指値の価格に届かなかった回は、取引として記録しない（FR-008）（仮）
+- quantity は、購入金額 ÷ 購入価格の整数部分（切り捨て）とする（FR-020）
+- quantity が0株になる場合は、購入しなかったものとして、取引として記録しない（FR-023）
+
+## Issue（問題点）
+| 項目 | 内容 |
+|---|---|
+| run | 対象の検証 |
+| aspect | 観点（時間帯／トリガー条件／トリガー条件の数値／取引回数） |
+| reason | 理由 |
+
+- Issue が1件もない場合は「問題は未発見」と表示する（FR-010-6）
+
+## Improvement（改善案）
+| 項目 | 内容 |
+|---|---|
+| issue | 対象の問題点 |
+| kind | 種類（数値／時間帯・トリガー） |
+| proposal | 提案内容（数値の場合は %、AI の場合は提案の文章） |
+| result_pnl / result_trade_count | 再検証の結果 |
+| note | 過学習の注意書き（FR-010-8） |
+
+- kind が「時間帯・トリガー」（AI の提案）の場合、result_pnl / result_trade_count は空とし、
+  未検証であることを表示する（FR-010-7）
+
+## PriceBar（株価データ：1時間足）
+| 項目 | 内容 |
+|---|---|
+| symbol | 銘柄 |
+| timestamp | 日時（仮：タイムゾーンを統一して保存する） |
+| open / high / low / close / volume | 始値・高値・安値・終値・出来高 |
+| session | 時間帯（市場前／市場中／市場後／夜間） |
+| fetched_at | 取得日時 |
+
+- 同じ銘柄・同じ日時のデータは1件だけ保存する。一度保存したデータは上書きしない（原則IV）（仮）
+
+## EarningsEvent（決算発表）（仮）
+| 項目 | 内容 |
+|---|---|
+| symbol | 銘柄 |
+| announced_at | 発表日時 |
+| fiscal_quarter | 四半期（第1四半期など） |
+| fetched_at | 取得日時 |
+
+- トリガー条件（決算発表）の判定に使う。再現性のため、株価データと同じく DB に保存する（仮）
