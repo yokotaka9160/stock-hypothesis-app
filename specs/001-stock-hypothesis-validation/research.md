@@ -1,72 +1,90 @@
 # Research: 株式取引 仮説検証
 
-**Date**: 2026-10-30
+**Date**: 2026-11-01
 **Spec**: [spec.md](./spec.md)
+**前提**: constitution「有料のサービスは使わない」（株価データは yfinance、生成AIは Gemini API の無料枠のみ）
 
-## 1. 1分足の株価データの取得元（FR-013, FR-015）
+## 1. 1時間足の株価データの取得元（FR-013, FR-016）
 
-- **Decision**: Alpaca Market Data API の無料プラン（Basic）を使い、全市場の約定データ（SIP）から作った1分足を取得する。
-- **Rationale**:
-  - 無料プランでも、15分以上前の SIP データ（bars / trades / quotes）は有料プランと同じものを取得できる。履歴は 2016 年から、上限は 200 回/分。
-  - 取得するときは `feed=sip` を指定し、終了時刻を現在時刻の15分以上前にする（直近15分を含めると 403 エラーになる）。
-  - 無料の IEX フィードは全米出来高の約2.5%しか含まないため、価格の判定には使わない。
-- **Alternatives considered**:
-  - Alpha Vantage `TIME_SERIES_INTRADAY`：時間外（4:00〜20:00 ET）を含み、2000年以降の月を指定できるが、premium エンドポイントで無料では使えない。
-  - Polygon（Massive）無料プラン：5回/分の制限があり、取得できる履歴の範囲や時間外を含むかを公式情報で確認できなかった。
+- **Decision**: yfinance の `Ticker.history(interval="1h", prepost=True, auto_adjust=False)` で取得する。
+- **Rationale**: constitution で yfinance を使うと決まっている。`prepost=True` で市場前・市場後の足も取れる。`auto_adjust=False` にすると、株式分割などで調整していない実際の価格が取れるので、株数（購入金額 ÷ 約定価格）を正しく計算できる。
+- **実データで確認した結果**（yfinance 1.7.0、AAPL、2026-10-30）:
+  - 時刻は `America/New_York` で返る。夏時間・冬時間は UTC からの差（-04:00 / -05:00）に反映されている。
+  - 足の開始時刻は次のとおり。市場前と市場中の境目、市場中と市場後の境目にある足は30分しかない。
+
+    | 時間帯 | 足の開始時刻 | 備考 |
+    |---|---|---|
+    | 市場前 | 4:00、5:00、6:00、7:00、8:00、9:00 | 9:00 の足は 9:00〜9:30 の30分 |
+    | 市場中 | 9:30、10:30、11:30、12:30、13:30、14:30、15:30 | 15:30 の足は 15:30〜16:00 の30分 |
+    | 市場後 | 16:00、17:00、18:00、19:00 | |
+    | 夜間 | なし | 20:00〜翌4:00 の足は返らない |
+
+  - 市場前・市場後の足は、出来高（Volume）が 0 で返る。価格（始値・高値・安値・終値）は入っている。
+  - 取得できるのは直近730日以内。範囲外を指定すると「The requested range must be within the last 730 days.」というエラーになる。
+- **Alternatives considered**: Alpaca・Alpha Vantage などの API は、constitution で yfinance を使うと決まっているため使わない。
 - **補足**:
-  - 時間外（4:00〜9:30、16:00〜20:00 ET）の1分足が含まれることは公式文書では確認できなかった。実装を始める前に、実データで確認する。
-  - 履歴は 2016 年からなので、年1回のトリガー（第1四半期の決算など）は最大でも約10回しか成立しない。FR-010b（成立回数10回未満を問題点として表示）は、ほぼ毎回表示される見込み。
-  - 株数（購入金額 ÷ 約定価格）を実際の価格で計算するため、株式分割などで調整していない生の価格を使う。
-  - 時刻は米国東部時間（`America/New_York`）で扱い、夏時間の切り替えを考慮する。
+  - FR-008b の「市場中の最後の1時間足」は 15:30 の足、「市場前の最後の1時間足」は 9:00 の足になる。
+  - 夜間の足が返らないので、夜間の取引は FR-009 のとおり検証不可になる。
+  - 市場前・市場後の出来高が 0 なので、出来高を使う条件（例：出来高が◯倍になったら）は検証できない。
 
-## 2. 決算発表の日付と区分の取得元（FR-014）
+## 2. 決算発表の日時の取得元（FR-014, FR-025）
 
-- **Decision**: Alpha Vantage の `EARNINGS` エンドポイントを使う。
-- **Rationale**:
-  - 1回の呼び出しで、1銘柄の過去の四半期決算をすべて取得できる（例：IBM は 1996 年から）。
-  - 各四半期に `fiscalDateEnding`（決算期末）、`reportedDate`（発表日）、`reportTime`（`pre-market` / `post-market`）が含まれる。決算期末から「第1四半期」を判定できる。
-  - 正確な発表時刻はないので、FR-014 のとおり pre-market を 8:00、post-market を 16:00（ET）とみなす。
-- **Alternatives considered**:
-  - Finnhub の earnings calendar：bmo / amc / dmh の区分を持つが、無料プランで取れる履歴の範囲を確認できなかった。
-  - Financial Modeling Prep：BMO / AMC の区分を持ち、無料は 250 回/日。期間指定のカレンダー形式なので、銘柄ごとの全履歴を取るには何度も呼び出す必要がある。
-  - FirstRate Data：2000年からの発表時刻区分を持つが有料。
+- **Decision**: yfinance の `Ticker.get_earnings_dates()` で発表日時を取得する。時刻が取れない場合は、FR-014 のとおり市場前の発表を 8:00、市場後の発表を 16:00 とみなす。
+- **実データで確認した結果**（AAPL、`limit=12`）: 発表日時は時刻とタイムゾーン付きで返る（例：`2026-07-30 16:00:00-04:00`）。過去の発表には、予想 EPS と実際の EPS も入っている。
 - **補足**:
-  - Alpha Vantage の無料キーは 25 回/日程度に制限されている（資料によって数値が違う）。銘柄ごとに1回呼べば足りるので問題ない。ただし、`EARNINGS` を無料キーで使えるかは実際のキーで確認する（demo キーでは取得できた）。
-  - `reportTime` が空の回がある場合の扱いは、spec に決めがない。
+  - 「決算発表時刻を含む1時間足」は、16:00 の発表なら 16:00 の足、その1本前は 15:30 の足になる。トリガーは 15:30 の足が確定した時点（16:00）で、購入の判定は次の 16:00 の足（市場後）から始まる。
+  - 発表予定（まだ発表されていない回）の時刻は、実際とずれることがある（例：AAPL の 2026-11-02 の予定は `15:00:00-05:00`）。検証には発表済みの回だけを使う。
+  - 第1四半期は暦年で数え、1〜3月に発表された決算を第1四半期の決算とする（FR-025）。会計年度が暦年と違う企業（例：AAPL の会計年度は9月末に終わる）でも、発表月だけで判定する。
 
-## 3. 自由な文章から条件への変換方法（FR-001a〜c）
+## 3. 逆指値・指値の約定判定（FR-008, FR-008a）
 
-- **Decision**: 大規模言語モデル（Claude API）の構造化出力を使い、文章を「トリガー条件・購入条件・購入方法・注文の有効時間・売却条件」の決まった形式（JSON）に変換する。変換は保存時に1回だけ行い、検証では保存した変換結果だけを使う。
-- **Rationale**:
-  - 書き方の決まっていない文章を扱えるのは言語モデルだけである。
-  - 変換結果は毎回同じとは限らないが、利用者が確認したうえで保存し（FR-001b）、検証では保存した結果を使う（FR-001c）ので、原則IV（再現性）は守れる。
-  - 変換先の形式で使える条件の種類（例：決算発表の◯分前、価格の◯%上昇、逆指値）を限ると、シミュレーションできない条件が保存されるのを防げる。形式に当てはまらない文章は、変換できなかった項目として返す。
-- **Alternatives considered**:
-  - 決まった書き方のルールで読み取る方法：再現性は高いが、決められた書き方しか受け付けないので、選んだ「自由な文章での入力」と合わない。
-  - 手元で動く言語モデル：費用はかからないが、変換の精度と動かす環境の準備が負担になる。
-- **補足**: Claude API は有料（使った分だけ課金）。constitution の「無料」は株価データについての制約なので違反ではないが、費用がかかる。
+- **Decision**: 注文の有効時間は60分で、1時間足ではトリガーの次の1本の足だけで判定する（FR-008、FR-008a）。
+  - 逆指値（買い）：その足の高値が指定価格以上になったら、指定価格で約定する。始値が指定価格より上で始まった場合は、始値で約定する。
+  - 指値（買い）：その足の安値が指定価格以下になったら、指定価格で約定する。始値が指定価格より下で始まった場合は、始値で約定する。
+- **Rationale**: 実際の注文と同じく、価格が飛んで始まった場合は始値で約定させる。結果が楽観的になりすぎるのを防げる。
+- **Alternatives considered**: 常に注文価格で約定させる方法は、価格が飛んだときに有利になりすぎるため採らない。
+- **補足**: 1時間足の中で、注文の価格に届いた正確な時刻は分からない。購入した足と同じ足で売却のタイミングが来た場合（例：9:00 の足で購入し、市場前の最後の足＝9:00 の足で売る場合）は、その足の終値で売却する（FR-008b）。
 
-## 4. 取得データの保存（FR-011, 原則IV）
+## 4. 時間帯の区切りと夏時間（FR-016）
 
-- **Decision**: 取得した1分足と決算データは手元に保存し、2回目以降の検証では保存したデータを使う。
-- **Rationale**: 取得元のデータは後から修正されることがあり、取得し直すたびに結果が変わると原則IV（再現性）を守れない。取得回数の制限（Alpaca 200 回/分、Alpha Vantage 25 回/日程度）も避けられる。
-- **Alternatives considered**: 検証のたびに取得する方法は、再現性が取得元に左右されるため採らない。
+- **Decision**: 時刻はすべて `America/New_York` で扱い、取引の時間帯は約定した足の開始時刻で判定する。
+- **Rationale**: yfinance が `America/New_York` で時刻を返す（項目1）。夏時間・冬時間の切り替えは、タイムゾーン付きの時刻で扱えば自動で反映される。
+- **補足**: DB に保存するときもタイムゾーン付き（または UTC に統一）で保存し、表示のときに米国東部時間に変換する。
 
-## 5. アプリの形と保存先（FR-002, constitution「利用者は個人のみ」）
+## 5. 文章の読み取り（FR-017〜FR-019, FR-025）
 
-- **Decision**: 手元のパソコンだけで動くアプリにし、仮説・変換結果・取得データ・検証結果は手元のファイル（SQLite）に保存する。
-- **Rationale**: 利用者は開発者本人だけなので、サーバーやログイン機能はいらない。SQLite は1つのファイルで済み、アプリを閉じても仮説が残る（FR-002）。
-- **Alternatives considered**: サーバーに置く Web サービスは、利用者が1人なので不要と判断した。
-- **補足**: 画面を作る具体的な技術（言語・ライブラリ）は plan.md の Technical Context で決める。
+- **Decision**: Gemini API（google-genai）の構造化出力で、FR-025 の範囲の項目（トリガー条件・購入条件の %・購入方法・売却条件）だけを JSON で返させる。範囲外の文章は、読み取りに失敗したものとして扱う。読み取りは保存時に1回だけ行う。
+- **Rationale**: 自由な文章を扱えるのは生成AIだけで、constitution で使ってよいのは Gemini API の無料枠だけである。読み取り結果は、利用者が確認して保存したものを検証に使うので、原則IV（再現性）を守れる。
+- **補足**: Pro 系のモデルは 2026-04-01 に無料枠の対象外になった。無料で使えるのは Flash 系・Flash-Lite 系のモデルに限られる。
+
+## 6. 取得データの保存（原則IV）
+
+- **Decision**: 銘柄と足の開始時刻の組み合わせが同じデータは1件だけ保存し、一度保存したら上書きしない。検証では DB のデータだけを使い、DB にない期間だけ yfinance から取得する。決算発表の日時も同じように保存する。
+- **Rationale**: yfinance のデータは後から修正されることがあり、取り直すと結果が変わる。また、直近730日を過ぎた1時間足は取り直せないので、保存しておかないと同じ検証ができなくなる。
+
+## 7. 改善案の提案（FR-010-7）
+
+- **Decision**: Gemini に仮説と検証結果を渡し、別の時間帯またはトリガー条件の案を3つ、文章で返させる。60秒以内に応答がない場合や、無料枠の上限に達した場合（HTTP 429）は、検証全体を失敗とする。
+- **無料枠の上限について調べた結果**:
+  - Google の公式ドキュメント（Rate limits）には、無料枠の具体的な数値が載っていない。モデルごとの上限は Google AI Studio のレート制限画面（aistudio.google.com/rate-limit）で、自分のプロジェクトについて確認する形になっている。
+  - 1日あたりの上限（RPD）は、太平洋時間の午前0時にリセットされる。
+  - 第三者の資料では、Flash 系の無料枠は「1分あたり 5〜15 回、1日あたり 20〜1,500 回」など、資料やモデルによって数値が大きく違う。
+- **補足**:
+  - 1回の検証で Gemini を呼ぶのは1回（改善案の提案）だけである。仮説の読み取りは保存時の1回だけ。
+  - 実装を始める前に AI Studio で使うモデルの上限を確認し、plan.md の Constraints に書く。
+  - 無料枠では、送った内容が Google の製品改善に使われる場合があると第三者の資料に書かれている。仮説の文章に個人情報を含めない。
+
+## 8. 検証にかかる時間（FR-015）
+
+- **Decision**: 改善案の再検証（31通り）は、DB に保存したデータだけを使って計算する。データの取得と Gemini の呼び出しを除いた計算時間を測り、10分以内に収まるかを確かめる（T039）。
+- **Rationale**: 1銘柄・730日分の1時間足は約12,000本（AAPL で 12,087本）である。31通りの再検証でも、足を順に調べるだけなので、数銘柄なら10分を大きく下回る見込み。
+- **補足**: 時間がかかるのは、初回に yfinance からデータを取得するときと、Gemini の応答待ち（最大60秒）である。
 
 ## 参考
 
-- [Alpaca: About Market Data API](https://docs.alpaca.markets/docs/about-market-data-api)
-- [Alpaca: Historical Stock Data](https://docs.alpaca.markets/docs/historical-stock-data-1)
-- [Alpaca Forum: Free Account/Paper Trading IEX/SIP Questions](https://forum.alpaca.markets/t/free-account-paper-trading-iex-sip-questions/19208)
-- [Alpaca Forum: Solutions for getting bars missing due to 15 minute historical delay](https://forum.alpaca.markets/t/solutions-for-getting-bars-missing-due-to-15-minute-historical-delay/8913)
-- [Alpha Vantage: Documentation](https://www.alphavantage.co/documentation/)
-- [Alpha Vantage: EARNINGS（demo キーでの取得例）](https://www.alphavantage.co/query?function=EARNINGS&symbol=IBM&apikey=demo)
-- [Macroption: Alpha Vantage API Request Limits](https://www.macroption.com/alpha-vantage-api-limits/)
-- [Alpaca: Polygon と Alpaca のデータプランの違い](https://alpaca.markets/learn/the-top-3-differences-between-polygon-and-alpaca-data-plans/)
-- [Eulerpool: Earnings Calendar API ガイド](https://eulerpool.com/blog/earnings-calendar-api-2)
+- [Gemini API: Rate limits（公式）](https://ai.google.dev/gemini-api/docs/rate-limits)
+- [Gemini API Free Tier 2026: Limits, Models, and Keys](https://klymentiev.com/blog/gemini-api-free-tier)
+- [Gemini API Rate Limits 2026: Free Tier, Paid Tiers, Per-Model Quotas](https://aipromptshub.co/limits/gemini-rate-limits-2026)
+- [Gemini API Free Tier Limits: Requests Per Day & Setup](https://www.scriptbyai.com/gemini-api-free-tier-limits/)
+- [Gemini pricing in 2026](https://www.cloudzero.com/blog/gemini-pricing/)
+- yfinance 1.7.0 での実データ確認（AAPL の1時間足、決算発表日時。2026-11-01 実施）
