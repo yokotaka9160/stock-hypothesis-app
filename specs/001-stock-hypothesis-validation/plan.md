@@ -13,8 +13,13 @@
 
 **Language/Version**: Python 3.12（仮）、TypeScript 5.x（仮）
 **Primary Dependencies**:
-  - バックエンド：Django、Django REST Framework（仮：React と通信する API のため）、yfinance、pandas（仮）
-  - フロントエンド：React、Vite（仮：React の開発環境を作るため）
+  - バックエンド：Django、Django REST Framework（仮）、yfinance、pandas（仮）、
+    Google Gen AI SDK（google-genai）（仮：Gemini API を呼び出すため）
+  - フロントエンド：React、Vite（仮）
+**Performance Goals**: [検証] を押してから10分以内に結果を表示する
+**Constraints**:（次を追加）
+  - Gemini API は無料枠の範囲で使う（回数・速度の上限がある）
+  - Gemini API の APIキーは、コードに書かず環境変数で管理する（仮）
 **Storage**: SQLite（仮）
 **Testing**: pytest、pytest-django（仮）。テストは実装の後に書き、再現性の確認を中心とする
 **Target Platform**: 自分の PC（WSL Ubuntu）上で動かし、ブラウザから localhost で開く
@@ -33,8 +38,9 @@
 |---|---|---|
 | I. 検証結果の正確性 | 再現性のテストを pytest で行う | ✅ |
 | II. 定量的な結果の提示 | 仮説・期間・総取引回数・損益額を表示する | ✅ |
-| III. 問題点の提示 | 3つの観点で表示する | ⚠️ 判断基準が spec で未定 |
-| IV. 再現性 | DB に保存したデータだけで検証する | ✅ |
+| III. 問題点の提示 | 3つの観点＋取引回数で判定し、理由と改善案を表示する | ✅ |
+| IV. 再現性 | DB に保存したデータだけで検証。生成AIの提案内容は例外 | ✅ |
+| 制約：有料サービスなし | yfinance と Gemini API の無料枠のみ | ✅ |
 | V. シンプルさ | 機能は3つ。データ取得は内部処理 | ⚠️ React の採用（Complexity Tracking を参照） |
 | 制約：実取引なし | 発注機能を作らない | ✅ |
 | 制約：無料データ | yfinance を使う | ✅ |
@@ -48,6 +54,7 @@ backend/
 ├── marketdata/        # 株価データの取得・保存（内部処理）
 ├── simulation/        # シミュレーションと損益計算
 ├── issues/            # 仮説の問題点の判定
+├── advisor/           # Gemini による改善案の提案（仮）
 └── tests/
 frontend/
 ├── src/
