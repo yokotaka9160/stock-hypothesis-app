@@ -44,8 +44,8 @@
 ## Phase 5: User Story 3 - 問題点の提示（P2）
 
 - [ ] T028 [US3] backend/issues/models.py に Issue・Improvement モデルを作る
-- [ ] T029 [US3] backend/issues/rules.py に、問題点の判定を作る（FR-010-1〜4、問題がないときは FR-010-6）
-- [ ] T030 [US3] backend/issues/improvements.py に、% を -15%〜+15% で1%刻みに再検証する改善案を作る（FR-010-5）
+- [ ] T029 [US3] backend/issues/rules.py に、問題点の判定を作る（FR-010-1〜4、問題がないときは FR-010-6。総取引回数が0回のときは FR-010-2・3 を判定しない）
+- [ ] T030 [US3] backend/issues/improvements.py に、% を -15%〜+15% で1%刻みに再検証し、全銘柄合計の損益が一番良い1つを改善案として出す処理を作る（問題点の有無にかかわらず出す。同点のときは元の % に近いもの、それも同じなら小さいほう。FR-010-5）
 - [ ] T031 [US3] backend/advisor/proposals.py に、Gemini による時間帯・トリガーの提案（3個・未検証）を作る（FR-010-7）
 - [ ] T032 [US3] 改善案に、過学習の注意書きと、AI 提案が未検証である旨を付ける（FR-010-8）
 - [ ] T033 [US3] frontend/src/components/IssuePanel.tsx に、左セクションの検証仮説の下に、問題点（理由）、問題がない場合は「問題は未発見」、続けて改善案を表示する部分を作る（FR-010）
