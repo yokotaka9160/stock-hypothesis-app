@@ -1,4 +1,5 @@
 import { ORDER_TYPE_LABELS, parsedItems } from '../hypothesisFormat'
+import { formatPnl, pnlClass } from '../moneyFormat'
 import type { Session, VerificationRun } from '../types'
 
 const SESSION_LABELS: Record<Session, string> = {
@@ -8,7 +9,6 @@ const SESSION_LABELS: Record<Session, string> = {
   night: '夜間',
 }
 
-const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', signDisplay: 'exceptZero' })
 const usdPlain = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
 const easternTime = new Intl.DateTimeFormat('ja-JP', {
   timeZone: 'America/New_York',
@@ -18,16 +18,6 @@ const easternTime = new Intl.DateTimeFormat('ja-JP', {
   hour: '2-digit',
   minute: '2-digit',
 })
-
-/** 損益額。表示は小数点以下2桁に丸める（計算は backend で小数点以下6桁まで行う） */
-function formatPnl(value: string): string {
-  return usd.format(Number(value))
-}
-
-function pnlClass(value: string): string {
-  const n = Number(value)
-  return n > 0 ? 'pnl positive' : n < 0 ? 'pnl negative' : 'pnl'
-}
 
 interface Props {
   run: VerificationRun

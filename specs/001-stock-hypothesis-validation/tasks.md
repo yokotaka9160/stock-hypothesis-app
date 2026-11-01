@@ -39,19 +39,20 @@
 - [X] T021 [US2] backend/simulation/engine.py に、トリガーの判定、逆指値・指値の約定判定（注文の有効時間＝60分、1時間足ではトリガーの次の1本の足だけ。FR-008、FR-008a、research 項目3）、売却（FR-008b）、株数の切り捨て、0株・未約定の扱い（FR-004a）、1銘柄につき同時に1つの取引（FR-004b）、売却する足のデータが欠けている場合の扱い（FR-008b）、決算発表時刻を含む1時間足がない場合のトリガー不成立（FR-025）を作る
 - [X] T022 [US2] backend/simulation/engine.py に、銘柄ごとの結果と全銘柄合計の計算を作る（FR-007）
 - [X] T023 [US2] データが取れない銘柄・夜間の取引を、検証不可として扱う処理と、一部の日だけデータが取れない場合に、データがある分だけで検証し、欠けている日があることを表示する処理を作る（FR-009）
-- [ ] T024 [US2] backend/simulation/views.py に、検証の API を作る（データ取得 → シミュレーション → 問題点 → AI 提案。Gemini が失敗したら検証全体を失敗にする）
+- [X] T024 [US2] backend/simulation/views.py に、検証の API を作る（データ取得 → シミュレーション → 問題点 → AI 提案。Gemini が失敗したら検証全体を失敗にする）
 - [X] T025 [P] [US2] frontend/src/components/VerifyForm.tsx に、銘柄（複数）・期間・購入金額の入力と [検証] ボタンを作る
 - [X] T026 [US2] frontend/src/components/ResultPanel.tsx に、右セクションの検証結果（仮説・期間・総取引回数・損益額、銘柄ごと・合計）を作る
 - [X] T027 [US2] 検証が失敗したときのエラー文の表示を作る
 
 ## Phase 5: User Story 3 - 問題点の提示（P2）
 
-- [ ] T028 [US3] backend/issues/models.py に Issue・Improvement モデルを作る
-- [ ] T029 [US3] backend/issues/rules.py に、問題点の判定を作る（FR-010-1〜4、問題がないときは FR-010-6。総取引回数が0回のときは FR-010-2・3 を判定しない）
-- [ ] T030 [US3] backend/issues/improvements.py に、% を -15%〜+15% で1%刻みに再検証し、全銘柄合計の損益が一番良い1つを改善案として出す処理を作る（問題点の有無にかかわらず出す。同点のときは元の % に近いもの、それも同じなら小さいほう。FR-010-5）
-- [ ] T031 [US3] backend/advisor/proposals.py に、Gemini による時間帯・トリガーの提案（3個・未検証）を作る（FR-010-7）
-- [ ] T032 [US3] 改善案に、過学習の注意書きと、AI 提案が未検証である旨を付ける（FR-010-8）
-- [ ] T033 [US3] frontend/src/components/IssuePanel.tsx に、左セクションの検証仮説の下に、問題点（理由）、問題がない場合は「問題は未発見」、続けて改善案を表示する部分を作る（FR-010）
+- [X] T028 [US3] backend/issues/models.py に Issue・Improvement モデルを作る
+- [X] T029 [US3] backend/issues/rules.py に、問題点の判定を作る（FR-010-1〜4、問題がないときは FR-010-6。総取引回数が0回のときは FR-010-2・3 を判定しない）
+- [X] T030 [US3] backend/issues/improvements.py に、% を -15%〜+15% で1%刻みに再検証し、全銘柄合計の損益が一番良い1つを改善案として出す処理を作る（問題点の有無にかかわらず出す。同点のときは元の % に近いもの、それも同じなら小さいほう。FR-010-5）
+- [X] T031 [US3] backend/advisor/proposals.py に、Gemini による時間帯・トリガーの提案（3個・未検証）を作る（FR-010-7）
+- [X] T032 [US3] 改善案に、過学習の注意書きと、AI 提案が未検証である旨を付ける（FR-010-8）
+- [X] T033 [US3] frontend/src/components/IssuePanel.tsx に、左セクションの検証仮説の下に、問題点（理由）、問題がない場合は「問題は未発見」、続けて改善案を表示する部分を作る（FR-010）
+- [X] T044 [US3] 改善案から新しい仮説を作れるようにする（入力欄に入れ、通常の流れで保存。保存後は右セクションでその仮説を選ぶ。backend/hypotheses/parser.py・simulation/serializers.py、frontend/src/components/IssuePanel.tsx・HypothesisSection.tsx。FR-027）
 
 ## Phase 6: Tests（実装の後に書く。constitution 原則I）
 

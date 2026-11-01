@@ -9,11 +9,13 @@ interface Props {
   hypotheses: Hypothesis[]
   selectedId: number | null
   onSelect: (id: number | null) => void
+  /** 表示中の検証結果。左セクションの問題点・改善案（FR-010）と共有する */
+  run: VerificationRun | null
+  onRunChange: (run: VerificationRun | null) => void
 }
 
 /** 右セクション（User Story 2）。仮説を選ぶと、その仮説の最新の検証結果を表示する */
-export function VerificationSection({ hypotheses, selectedId, onSelect }: Props) {
-  const [run, setRun] = useState<VerificationRun | null>(null)
+export function VerificationSection({ hypotheses, selectedId, onSelect, run, onRunChange: setRun }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [isRunning, setIsRunning] = useState(false)
 
@@ -34,7 +36,7 @@ export function VerificationSection({ hypotheses, selectedId, onSelect }: Props)
     return () => {
       cancelled = true
     }
-  }, [selectedId])
+  }, [selectedId, setRun])
 
   const handleSelect = (id: number | null) => {
     setRun(null)
@@ -45,6 +47,7 @@ export function VerificationSection({ hypotheses, selectedId, onSelect }: Props)
   const handleSubmit = async (request: VerificationRequest) => {
     setIsRunning(true)
     setError(null)
+    setRun(null)
     try {
       setRun(await runVerification(request))
     } catch (e) {

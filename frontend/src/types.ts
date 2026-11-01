@@ -46,6 +46,30 @@ export interface SymbolResult {
   trades: Trade[]
 }
 
+/** 問題点の観点（FR-010-1〜FR-010-4） */
+export type IssueAspect = 'time_of_day' | 'trigger' | 'trigger_value' | 'trade_count'
+
+export interface Issue {
+  id: number
+  aspect: IssueAspect
+  reason: string
+}
+
+/** 改善案。numeric は % の再検証（FR-010-5）、ai は Gemini の提案で未検証（FR-010-7） */
+export interface Improvement {
+  id: number
+  issue: number | null
+  kind: 'numeric' | 'ai'
+  proposal: string
+  buy_percent: string | null
+  order_type: OrderType | ''
+  result_pnl: string | null
+  result_trade_count: number | null
+  note: string
+  /** この改善案から新しい仮説を作るときに、入力欄に入れる文章 */
+  draft_text: string
+}
+
 export interface VerificationRun {
   id: number
   hypothesis: number
@@ -61,6 +85,8 @@ export interface VerificationRun {
   total_trade_count: number
   total_pnl: string
   symbol_results: SymbolResult[]
+  issues: Issue[]
+  improvements: Improvement[]
 }
 
 export interface VerificationRequest {

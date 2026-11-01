@@ -1,4 +1,4 @@
-"""検証の API（FR-004〜FR-009）
+"""検証の API（FR-004〜FR-011）
 
 POST /api/verifications/ で検証を実行し、結果を返す（最大10分。FR-015）。
 GET /api/verifications/?hypothesis={id} で、その仮説の検証結果を新しい順に返す。
@@ -15,7 +15,7 @@ class VerificationRunViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, v
     serializer_class = VerificationRunSerializer
 
     def get_queryset(self):
-        queryset = VerificationRun.objects.prefetch_related('symbol_results__trades')
+        queryset = VerificationRun.objects.prefetch_related('symbol_results__trades', 'issues', 'improvements')
         hypothesis_id = self.request.query_params.get('hypothesis')
         if hypothesis_id:
             queryset = queryset.filter(hypothesis_id=hypothesis_id)

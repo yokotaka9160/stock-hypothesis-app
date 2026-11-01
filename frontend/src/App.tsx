@@ -4,13 +4,15 @@ import { messageOf } from './api/client'
 import { listHypotheses } from './api/hypotheses'
 import { HypothesisSection } from './components/HypothesisSection'
 import { VerificationSection } from './components/VerificationSection'
-import type { Hypothesis } from './types'
+import type { Hypothesis, VerificationRun } from './types'
 
 function App() {
   const [hypotheses, setHypotheses] = useState<Hypothesis[]>([])
   const [loadError, setLoadError] = useState<string | null>(null)
   // 右セクションで検証する仮説
   const [selectedId, setSelectedId] = useState<number | null>(null)
+  // 右セクションに表示中の検証結果。左セクションでは、検証した仮説の下に問題点・改善案を出す
+  const [run, setRun] = useState<VerificationRun | null>(null)
 
   const reload = useCallback(async () => {
     try {
@@ -48,16 +50,25 @@ function App() {
           <HypothesisSection
             hypotheses={hypotheses}
             loadError={loadError}
+            verifiedRun={run}
             onChanged={reload}
             onDeleted={(id) => {
               if (id === selectedId) setSelectedId(null)
+              if (id === run?.hypothesis) setRun(null)
             }}
+            onCreatedFromImprovement={setSelectedId}
           />
         </section>
         {/* 右セクション：検証の条件と検証結果 */}
         <section className="panel panel-right" aria-labelledby="right-title">
           <h2 id="right-title">検証結果</h2>
-          <VerificationSection hypotheses={hypotheses} selectedId={selectedId} onSelect={setSelectedId} />
+          <VerificationSection
+            hypotheses={hypotheses}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+            run={run}
+            onRunChange={setRun}
+          />
         </section>
       </main>
     </div>

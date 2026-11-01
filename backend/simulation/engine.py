@@ -58,6 +58,8 @@ class SimulatedTrade:
 class SymbolSimulation:
     symbol: str
     unavailable: bool = False
+    # 夜間に購入する取引があった（FR-009 で検証不可、FR-010-1 で問題点）
+    night_trade: bool = False
     trades: list[SimulatedTrade] = field(default_factory=list)
     missing_dates: list[date] = field(default_factory=list)
 
@@ -180,6 +182,7 @@ def simulate_symbol(
         if buy_session == NIGHT:
             # 夜間の価格データは取れないので検証不可（FR-009）
             result.unavailable = True
+            result.night_trade = True
             return result
 
         sell_bar, sell_day = _find_sell_bar(order_bar, buy_session, bars_by_day)

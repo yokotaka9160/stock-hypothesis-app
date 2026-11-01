@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { messageOf } from '../api/client'
 import {
   createHypothesis,
@@ -9,7 +9,7 @@ import {
   type ParseResult,
   type Suggestion,
 } from '../api/hypotheses'
-import type { Hypothesis, ParsedHypothesis } from '../types'
+import type { Hypothesis, ParsedHypothesis, VerificationRun } from '../types'
 import { HypothesisForm } from './HypothesisForm'
 import { HypothesisList } from './HypothesisList'
 import { ParsedConfirm } from './ParsedConfirm'
@@ -22,13 +22,27 @@ import { ParsedConfirm } from './ParsedConfirm'
 interface Props {
   hypotheses: Hypothesis[]
   loadError: string | null
+  /** 右セクションに表示中の検証結果。検証した仮説の下に問題点・改善案を出す（FR-010） */
+  verifiedRun: VerificationRun | null
   /** 仮説を保存・削除したあとに、一覧を読み込み直す */
   onChanged: () => Promise<void>
   /** 仮説を削除したとき */
   onDeleted: (id: number) => void
+  /** 改善案から作った仮説を保存したとき。右セクションで検証できるように選ぶ */
+  onCreatedFromImprovement: (id: number) => void
 }
 
-export function HypothesisSection({ hypotheses, loadError, onChanged, onDeleted }: Props) {
+export function HypothesisSection({
+  hypotheses,
+  loadError,
+  verifiedRun,
+  onChanged,
+  onDeleted,
+  onCreatedFromImprovement,
+}: Props) {
+  const sectionRef = useRef<HTMLDivElement>(null)
+  // 入力欄の文章が改善案から作ったものか（保存したら、右セクションでその仮説を選ぶ）
+  const [fromImprovement, setFromImprovement] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const [editing, setEditing] = useState<Hypothesis | null>(null)
@@ -43,7 +57,7 @@ export function HypothesisSection({ hypotheses, loadError, onChanged, onDeleted 
   const [suggestion, setSuggestion] = useState<Suggestion | null>(null)
   const [confirmError, setConfirmError] = useState<string | null>(null)
 
-  const resetForm = (text: string, target: Hypothesis | null) => {
+  const resetForm = (text: string, target: Hypothesis | null, fromImprovementText = false) => {
     setEditing(target)
     setDraftText(text)
     setPending(null)
@@ -51,6 +65,13 @@ export function HypothesisSection({ hypotheses, loadError, onChanged, onDeleted 
     setSuggestion(null)
     setConfirmError(null)
     setFormKey((k) => k + 1)
+    setFromImprovement(fromImprovementText)
+  }
+
+  const handleUseImprovement = (text: string) => {
+    // 入力欄に入れるだけで、保存は通常の流れ（読み取り → 確認 → 保存）で行う
+    resetForm(text, null, true)
+    sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
   const handleSubmit = async (text: string) => {
@@ -75,13 +96,16 @@ export function HypothesisSection({ hypotheses, loadError, onChanged, onDeleted 
     setIsSaving(true)
     setConfirmError(null)
     try {
+      const created = fromImprovement && !editing
+      let saved: Hypothesis
       if (editing) {
-        await updateHypothesis(editing.id, pending.text, parsed)
+        saved = await updateHypothesis(editing.id, pending.text, parsed)
       } else {
-        await createHypothesis(pending.text, parsed)
+        saved = await createHypothesis(pending.text, parsed)
       }
       resetForm('', null)
       await onChanged()
+      if (created) onCreatedFromImprovement(saved.id)
     } catch (e) {
       setConfirmError(messageOf(e))
     } finally {
@@ -106,7 +130,7 @@ export function HypothesisSection({ hypotheses, loadError, onChanged, onDeleted 
   const busy = isParsing || isSaving
 
   return (
-    <div className="hypothesis-section">
+    <div className="hypothesis-section" ref={sectionRef}>
       {pending ? (
         <ParsedConfirm
           text={pending.text}
@@ -114,7 +138,7 @@ export function HypothesisSection({ hypotheses, loadError, onChanged, onDeleted 
           isSaving={isSaving}
           error={confirmError}
           onConfirm={handleConfirm}
-          onBack={() => resetForm(draftText, editing)}
+          onBack={() => resetForm(draftText, editing, fromImprovement)}
         />
       ) : (
         <HypothesisForm
@@ -126,7 +150,7 @@ export function HypothesisSection({ hypotheses, loadError, onChanged, onDeleted 
           suggestion={suggestion}
           onSubmit={handleSubmit}
           onCancelEdit={() => resetForm('', null)}
-          onUseSuggestion={(text) => resetForm(text, editing)}
+          onUseSuggestion={(text) => resetForm(text, editing, fromImprovement)}
         />
       )}
 
@@ -139,6 +163,8 @@ export function HypothesisSection({ hypotheses, loadError, onChanged, onDeleted 
       <HypothesisList
         hypotheses={hypotheses}
         editingId={editing?.id ?? null}
+        verifiedRun={verifiedRun}
+        onUseImprovement={handleUseImprovement}
         disabled={busy || pending !== null}
         onEdit={(h) => resetForm(h.text, h)}
         onDelete={handleDelete}

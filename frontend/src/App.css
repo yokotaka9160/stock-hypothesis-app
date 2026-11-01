@@ -335,3 +335,83 @@ thead th {
   cursor: pointer;
   font-weight: 600;
 }
+
+/* 検証仮説の下の問題点・改善案（FR-010） */
+.issue-panel {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.issue-panel h4 {
+  margin: 12px 0 6px;
+  font-size: 0.95rem;
+}
+
+.issue-run {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.issue-list,
+.improvement-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.issue-list li,
+.improvement-list li {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.issue-list li {
+  border-left: 3px solid var(--danger);
+}
+
+.improvement-list li {
+  border-left: 3px solid var(--accent);
+}
+
+.issue-list p,
+.improvement-list p {
+  margin: 4px 0 0;
+}
+
+.issue-aspect,
+.improvement-kind {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.issue-aspect {
+  color: var(--danger);
+}
+
+.improvement-kind {
+  color: var(--accent);
+}
+
+.improvement-kind.unverified {
+  color: var(--text-muted);
+}
+
+.no-issue {
+  margin: 0;
+}
+
+.improvement-result {
+  font-size: 0.9rem;
+}
+
+.improvement-note {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}

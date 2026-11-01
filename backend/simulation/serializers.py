@@ -6,6 +6,8 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from hypotheses.models import Hypothesis
+from hypotheses.parser import compose_text
+from issues.models import Improvement, Issue
 from marketdata.services import MAX_HISTORY_DAYS
 from marketdata.sessions import EASTERN
 
@@ -63,8 +65,40 @@ class SymbolResultSerializer(serializers.ModelSerializer):
         fields = ['symbol', 'trade_count', 'pnl', 'unavailable', 'missing_dates', 'trades']
 
 
+class IssueSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Issue
+        fields = ['id', 'aspect', 'reason']
+
+
+class ImprovementSerializer(serializers.ModelSerializer):
+    draft_text = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Improvement
+        fields = [
+            'id', 'issue', 'kind', 'proposal', 'buy_percent', 'order_type',
+            'result_pnl', 'result_trade_count', 'note', 'draft_text',
+        ]
+
+    def get_draft_text(self, improvement) -> str:
+        """改善案から新しい仮説を作るときに、入力欄に入れる文章"""
+        run = improvement.run
+        if improvement.kind == Improvement.KIND_NUMERIC:
+            # 数値の改善案は、元の仮説の % と購入方法だけを置き換えた、範囲内の文章にする
+            return compose_text({
+                **run.hypothesis_parsed,
+                'buy_percent': float(improvement.buy_percent),
+                'order_type': improvement.order_type,
+            })
+        # AI の提案は範囲外のことが多いので、元の仮説と提案を並べ、利用者が書き直す前提にする
+        return f'{run.hypothesis_text}\n\n【AI の提案（この内容に合わせて書き直してください）】\n{improvement.proposal}'
+
+
 class VerificationRunSerializer(serializers.ModelSerializer):
     symbol_results = SymbolResultSerializer(many=True, read_only=True)
+    issues = IssueSerializer(many=True, read_only=True)
+    improvements = ImprovementSerializer(many=True, read_only=True)
     total_trade_count = serializers.SerializerMethodField()
     total_pnl = serializers.SerializerMethodField()
 
@@ -73,7 +107,7 @@ class VerificationRunSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'hypothesis', 'hypothesis_text', 'hypothesis_parsed', 'symbols',
             'period_start', 'period_end', 'amount', 'status', 'error_message', 'created_at',
-            'total_trade_count', 'total_pnl', 'symbol_results',
+            'total_trade_count', 'total_pnl', 'symbol_results', 'issues', 'improvements',
         ]
 
     def _available(self, run):

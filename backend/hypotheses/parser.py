@@ -80,6 +80,19 @@ SELL_SENTENCE = (
     '市場中に買った場合は市場中の最後の1時間足の終値で全売却する'
 )
 
+
+def compose_text(parsed: dict) -> str:
+    """読み取り結果から、FR-025 の範囲に合う仮説の文章を作る（改善案から新しい仮説を作るときに使う）"""
+    quarter = parsed['trigger'].get('quarter')
+    percent = parsed['buy_percent']
+    percent_text = f'{percent:+g}%' if percent != 0 else '0%'
+    order = '逆指値' if parsed['order_type'] == ORDER_STOP else '指値'
+    return (
+        (f'第{quarter}四半期の' if quarter else '')
+        + f'{TRIGGER_SENTENCE}、その1時間足の終値から {percent_text} の価格で、{order}で買う。'
+        + f'{SELL_SENTENCE}。'
+    )
+
 RESPONSE_SCHEMA = {
     'type': 'object',
     'properties': {
