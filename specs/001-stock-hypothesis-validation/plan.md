@@ -19,7 +19,7 @@
 **Performance Goals**: [検証] を押してから10分以内に結果を表示する
 **Storage**: SQLite
 **Testing**: pytest、pytest-django。テストは実装の後に書き、再現性の確認を中心とする。期待値との比較は行わない（原則I）
-**Target Platform**: 自分の PC（WSL Ubuntu）上で動かし、ブラウザから localhost で開く
+**Target Platform**: 自分の PC（WSL Ubuntu）上で Docker（docker compose）で起動し、ブラウザから localhost で開く。SQLite のファイルは Docker のボリュームに置き、コンテナを作り直しても消えないようにする
 **Project Type**: Web アプリ（バックエンド＋フロントエンド）
 **Constraints**:
   - 株価データは1時間足、取得できる期間は直近2年程度
@@ -54,13 +54,16 @@ backend/
 ├── simulation/        # シミュレーションと損益計算
 ├── issues/            # 仮説の問題点の判定
 ├── advisor/           # Gemini による改善案の提案
-└── tests/
+├── tests/
+└── Dockerfile
 frontend/
 ├── src/
 │   ├── components/    # 左セクション（仮説・問題点）、右セクション（検証結果）
 │   ├── api/           # バックエンドとの通信
 │   └── App.tsx
-└── package.json
+├── package.json
+└── Dockerfile
+compose.yaml           # backend と frontend をまとめて起動する
 
 ## Complexity Tracking
 

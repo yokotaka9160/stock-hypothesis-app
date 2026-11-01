@@ -4,12 +4,13 @@
 
 ## Phase 1: Setup（準備）
 
-- [ ] T001 backend/ に Django プロジェクト（config）を作る
-- [ ] T002 [P] Django アプリ hypotheses / marketdata / simulation / issues / advisor を作る
-- [ ] T003 [P] frontend/ に Vite＋React＋TypeScript のプロジェクトを作る
-- [ ] T004 [P] backend/ に pytest と pytest-django を設定する
-- [ ] T005 [P] Gemini の APIキーを環境変数から読み込む設定と、backend/.env.example を作る
-- [ ] T006 Django REST Framework を設定し、frontend から backend に通信できるようにする（Vite のプロキシ機能を使う）
+- [X] T001 backend/ に Django プロジェクト（config）を作る
+- [X] T002 [P] Django アプリ hypotheses / marketdata / simulation / issues / advisor を作る
+- [X] T003 [P] frontend/ に Vite＋React＋TypeScript のプロジェクトを作る
+- [X] T004 [P] backend/ に pytest と pytest-django を設定する
+- [X] T005 [P] Gemini の APIキーを環境変数から読み込む設定と、backend/.env.example を作る
+- [X] T006 Django REST Framework を設定し、frontend から backend に通信できるようにする（Vite のプロキシ機能を使う）
+- [X] T041 Docker（docker compose）で backend と frontend を起動できるようにする（backend/Dockerfile、frontend/Dockerfile、compose.yaml。SQLite はボリュームに置く）
 
 ## Phase 2: Foundational（全ストーリーの土台）
 
