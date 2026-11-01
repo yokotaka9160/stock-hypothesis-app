@@ -58,3 +58,8 @@ export const api = {
   patch: <T>(path: string, body?: unknown) => request<T>('PATCH', path, body),
   delete: <T = void>(path: string) => request<T>('DELETE', path),
 }
+
+/** 画面に出すエラー文 */
+export function messageOf(e: unknown): string {
+  return e instanceof ApiError ? e.message : 'エラーが発生しました'
+}

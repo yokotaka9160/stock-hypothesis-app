@@ -20,3 +20,53 @@ export interface Hypothesis {
   created_at: string
   updated_at: string
 }
+
+/** 時間帯（FR-016） */
+export type Session = 'pre' | 'regular' | 'post' | 'night'
+
+// 金額・価格は桁落ちを避けるため、backend から文字列で受け取る
+
+export interface Trade {
+  buy_at: string
+  buy_price: string
+  buy_session: Session
+  order_type: OrderType
+  quantity: number
+  sell_at: string
+  sell_price: string
+  pnl: string
+}
+
+export interface SymbolResult {
+  symbol: string
+  trade_count: number
+  pnl: string
+  unavailable: boolean
+  missing_dates: string[]
+  trades: Trade[]
+}
+
+export interface VerificationRun {
+  id: number
+  hypothesis: number
+  hypothesis_text: string
+  hypothesis_parsed: ParsedHypothesis
+  symbols: string[]
+  period_start: string
+  period_end: string
+  amount: string
+  status: 'success' | 'failed'
+  error_message: string
+  created_at: string
+  total_trade_count: number
+  total_pnl: string
+  symbol_results: SymbolResult[]
+}
+
+export interface VerificationRequest {
+  hypothesis_id: number
+  symbols: string[]
+  period_start: string
+  period_end: string
+  amount: string
+}

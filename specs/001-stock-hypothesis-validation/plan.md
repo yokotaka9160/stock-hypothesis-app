@@ -14,7 +14,8 @@
 **Language/Version**: Python 3.12、TypeScript 5.x
 **Primary Dependencies**:
   - バックエンド：Django、Django REST Framework、yfinance、pandas、
-    Google Gen AI SDK（google-genai）（Gemini API を呼び出すため）
+    Google Gen AI SDK（google-genai）（Gemini API を呼び出すため）、
+    Alpha Vantage API（決算発表の区分の取得。yfinance で時刻が取れない回だけ使う。呼び出しには Python の標準ライブラリを使い、新しいライブラリは追加しない）
   - フロントエンド：React、Vite
 **Performance Goals**: [検証] を押してから10分以内に結果を表示する
 **Storage**: SQLite
@@ -29,6 +30,7 @@
   - Gemini API は無料枠の範囲で使う（回数・速度の上限がある）
   - Gemini API の APIキーは、コードに書かず環境変数で管理する
   - Gemini API から60秒以内に応答がない場合は「応答なし」とみなす
+  - Alpha Vantage は無料枠（1日25回程度）の範囲で使う。APIキーは環境変数で管理する
 **Scale/Scope**: 利用者は1人。機能は3つ
 
 ## Constitution Check
@@ -39,7 +41,7 @@
 | II. 定量的な結果の提示 | 仮説・期間・総取引回数・損益額を表示する | ✅ |
 | III. 問題点の提示 | 3つの観点＋取引回数で判定し、理由と改善案を表示する | ✅ |
 | IV. 再現性 | DB に保存したデータだけで検証。生成AIの提案内容は例外 | ✅ |
-| 制約：有料サービスなし | yfinance と Gemini API の無料枠のみ | ✅ |
+| 制約：有料サービスなし | yfinance、Gemini API の無料枠、Alpha Vantage の無料枠のみ | ✅ |
 | V. シンプルさ | 機能は3つ。データ取得は内部処理 | ⚠️ React の採用（Complexity Tracking を参照） |
 | 制約：実取引なし | 発注機能を作らない | ✅ |
 | 制約：無料データ | yfinance を使う | ✅ |

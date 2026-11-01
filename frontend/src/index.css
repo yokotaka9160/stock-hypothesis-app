@@ -7,6 +7,7 @@
   --accent: #0969da;
   --accent-text: #ffffff;
   --danger: #cf222e;
+  --positive: #1a7f37;
 
   font-family: system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
   line-height: 1.6;
@@ -24,6 +25,7 @@
     --accent: #4493f8;
     --accent-text: #0d1117;
     --danger: #f85149;
+    --positive: #3fb950;
   }
 }
 

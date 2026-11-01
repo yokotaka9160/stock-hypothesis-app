@@ -21,6 +21,7 @@
 |---|---|
 | id | 識別子 |
 | hypothesis | 対象の仮説（検証した時点の仮説の内容も保存する）。仮説を削除すると、この検証の実行と、それに属する銘柄ごとの結果・取引・問題点・改善案も削除する（FR-003） |
+| hypothesis_text / hypothesis_parsed | 検証した時点の仮説の文章と読み取り結果 |
 | symbols | 銘柄（複数） |
 | period_start / period_end | 検証期間 |
 | amount | 購入金額 |
@@ -36,6 +37,7 @@
 | trade_count | 取引回数 |
 | pnl | 損益額 |
 | unavailable | 検証不可かどうか（FR-009） |
+| missing_dates | データが欠けている取引日の一覧（FR-009、FR-008b） |
 
 - 全銘柄の合計は、SymbolResult から計算する（FR-007）
 
@@ -44,6 +46,7 @@
 |---|---|
 | result | 対象の銘柄ごとの結果 |
 | buy_at / buy_price | 購入日時・購入価格 |
+| buy_session | 購入した時間帯（市場前／市場中／市場後／夜間） |
 | order_type | 逆指値／指値 |
 | quantity | 株数 |
 | sell_at / sell_price | 売却日時・売却価格 |

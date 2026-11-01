@@ -3,17 +3,21 @@
 - DB にない期間だけ yfinance から取得し、保存済みのデータは上書きしない（原則IV）。
 - 検証では、ここで保存したデータだけを使う。
 """
+import json
 import logging
 import math
+import urllib.parse
+import urllib.request
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 
 import pandas as pd
 import yfinance as yf
+from django.conf import settings
 from django.utils import timezone
 
 from .models import EarningsEvent, PriceBar
-from .sessions import EASTERN, session_of, to_eastern
+from .sessions import EASTERN, is_trading_day, session_of, to_eastern
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +27,11 @@ MAX_HISTORY_DAYS = 729
 # 決算発表の時刻が取れない場合にみなす時刻（FR-014）
 ASSUMED_PRE_MARKET_TIME = time(8, 0)
 ASSUMED_POST_MARKET_TIME = time(16, 0)
+
+# 時刻が取れない回の区分を調べる Alpha Vantage の API（research 項目2）
+ALPHAVANTAGE_URL = 'https://www.alphavantage.co/query'
+ALPHAVANTAGE_TIMEOUT_SECONDS = 30
+ALPHAVANTAGE_REPORT_TIMES = {'pre-market': 'pre', 'post-market': 'post'}
 
 # 最後に保存した決算発表から、次の発表があり得るまでの日数（約1四半期）
 EARNINGS_REFRESH_DAYS = 100
@@ -60,7 +69,7 @@ def ensure_price_bars(symbol: str, start: date, end: date) -> int:
 
 
 def _missing_ranges(symbol: str, start: date, end: date) -> list[tuple[date, date]]:
-    """保存済みの最初の足より前、最後の足より後で、平日を含む期間を返す。途中の欠けは取り直さない"""
+    """保存済みの最初の足より前、最後の足より後で、取引日を含む期間を返す。途中の欠けは取り直さない"""
     bars = PriceBar.objects.filter(symbol=symbol)
     first = bars.order_by('timestamp').first()
     if first is None:
@@ -71,17 +80,17 @@ def _missing_ranges(symbol: str, start: date, end: date) -> list[tuple[date, dat
     last_day = to_eastern(last.timestamp).date()
 
     ranges = []
-    if start < first_day and _has_weekday(start, first_day - timedelta(days=1)):
+    if start < first_day and _has_trading_day(start, first_day - timedelta(days=1)):
         ranges.append((start, first_day - timedelta(days=1)))
-    if end > last_day and _has_weekday(last_day + timedelta(days=1), end):
+    if end > last_day and _has_trading_day(last_day + timedelta(days=1), end):
         ranges.append((last_day + timedelta(days=1), end))
     return ranges
 
 
-def _has_weekday(start: date, end: date) -> bool:
+def _has_trading_day(start: date, end: date) -> bool:
     day = start
     while day <= end:
-        if day.weekday() < 5:
+        if is_trading_day(day):
             return True
         day += timedelta(days=1)
     return False
@@ -155,13 +164,20 @@ def _download_earnings_dates(symbol: str) -> pd.DataFrame:
 
 def _save_earnings_events(symbol: str, df: pd.DataFrame) -> int:
     saved = 0
+    # 発表日ごとの区分。時刻が取れない回が出たときに、初めて Alpha Vantage から取得する
+    report_times: dict[date, str] | None = None
     for ts, row in df.iterrows():
         # 発表済み（実際の EPS がある）回だけを使う（research 項目2）
         if _is_missing(row.get('Reported EPS')):
             continue
-        announced_at = resolve_announced_at(ts.to_pydatetime())
+        raw = ts.to_pydatetime()
+        announced_at = resolve_announced_at(raw)
         if announced_at is None:
-            logger.warning('%s %s の決算発表は時刻が分からないため保存しません', symbol, ts)
+            if report_times is None:
+                report_times = _download_report_times(symbol)
+            announced_at = resolve_announced_at(raw, report_times.get(to_eastern(raw).date()))
+        if announced_at is None:
+            logger.warning('%s %s の決算発表は時刻も区分も分からないため保存しません', symbol, ts)
             continue
         day = announced_at.date()
         # 同じ日の決算発表がすでにある場合は、上書きせずに飛ばす
@@ -183,10 +199,44 @@ def _save_earnings_events(symbol: str, df: pd.DataFrame) -> int:
     return saved
 
 
+def _download_report_times(symbol: str) -> dict[date, str]:
+    """Alpha Vantage の EARNINGS から、発表日ごとの区分（'pre' / 'post'）を取得する（FR-014）
+
+    APIキーが未設定の場合や取得に失敗した場合は、空の dict を返す（その回は保存しない）。
+    """
+    if not settings.ALPHAVANTAGE_API_KEY:
+        logger.warning('ALPHAVANTAGE_API_KEY が未設定のため、%s の決算発表の区分を取得できません', symbol)
+        return {}
+    query = urllib.parse.urlencode(
+        {'function': 'EARNINGS', 'symbol': symbol, 'apikey': settings.ALPHAVANTAGE_API_KEY}
+    )
+    try:
+        with urllib.request.urlopen(f'{ALPHAVANTAGE_URL}?{query}', timeout=ALPHAVANTAGE_TIMEOUT_SECONDS) as res:
+            data = json.load(res)
+    except Exception as e:
+        logger.warning('%s の決算発表の区分を Alpha Vantage から取得できませんでした: %s', symbol, e)
+        return {}
+    if 'quarterlyEarnings' not in data:
+        # 無料枠の上限に達した場合なども、エラーではなく説明文（Information など）が返る
+        logger.warning('%s の決算発表の区分を Alpha Vantage から取得できませんでした: %s', symbol, data)
+        return {}
+    report_times = {}
+    for item in data['quarterlyEarnings']:
+        timing = ALPHAVANTAGE_REPORT_TIMES.get(item.get('reportTime'))
+        try:
+            reported = date.fromisoformat(item.get('reportedDate') or '')
+        except ValueError:
+            continue
+        if timing is not None:
+            report_times[reported] = timing
+    return report_times
+
+
 def resolve_announced_at(raw: datetime, timing: str | None = None) -> datetime | None:
     """発表日時を決める。時刻が取れない場合は、区分（市場前／市場後）から時刻をみなす（FR-014）
 
-    yfinance は時刻付きで返すが、時刻がない（0:00）場合に区分も分からなければ None を返す。
+    yfinance は時刻付きで返すが、時刻がない（0:00）場合は Alpha Vantage の区分を timing に渡す。
+    区分も分からなければ None を返す。
     """
     eastern = to_eastern(raw)
     if eastern.time() != time(0, 0):

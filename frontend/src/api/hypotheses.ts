@@ -1,5 +1,5 @@
 import type { Hypothesis, ParsedHypothesis } from '../types'
-import { api } from './client'
+import { ApiError, api } from './client'
 
 export interface ParseResult {
   text: string
@@ -13,7 +13,8 @@ export interface Suggestion {
 }
 
 /** 読み取りに失敗したときのエラーから、提案を取り出す */
-export function suggestionOf(data: unknown): Suggestion | null {
+export function suggestionOf(e: unknown): Suggestion | null {
+  const data = e instanceof ApiError ? e.data : null
   if (!data || typeof data !== 'object') return null
   const { suggestion } = data as { suggestion?: unknown }
   if (!suggestion || typeof suggestion !== 'object') return null

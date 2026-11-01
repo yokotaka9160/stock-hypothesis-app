@@ -17,7 +17,7 @@
 - [X] T007 backend/marketdata/models.py に PriceBar（1時間足）モデルを作る
 - [X] T008 [P] backend/marketdata/models.py に EarningsEvent（決算発表）モデルを作る
 - [X] T009 backend/marketdata/sessions.py に、時間帯（市場前／市場中／市場後／夜間）の判定を作る（夏時間・冬時間に対応。research 項目4）
-- [X] T010 backend/marketdata/services.py に、DB にない株価データ・決算発表データだけを yfinance から取得して保存する処理を作る（保存済みのデータは上書きしない。決算発表の時刻が取れない場合は、市場前 8:00・市場後 16:00 とみなす。FR-014）
+- [X] T010 backend/marketdata/services.py に、DB にない株価データ・決算発表データだけを yfinance から取得して保存する処理を作る（保存済みのデータは上書きしない。決算発表の時刻が取れない回は、Alpha Vantage から区分を取得して市場前 8:00・市場後 16:00 とみなす。区分も取れない回は保存しない。backend/.env.example に `ALPHAVANTAGE_API_KEY` を追加する。FR-014）
 - [X] T011 [P] backend/advisor/client.py に、Gemini を呼び出す共通処理を作る（60秒で応答なし、無料枠の上限はエラーとして扱う）
 - [X] T012 [P] frontend/src/api/client.ts に、backend との通信の共通処理を作る
 - [X] T013 [P] frontend/src/App.tsx に、左右2分割の画面レイアウトを作る
@@ -35,14 +35,14 @@
 
 ## Phase 4: User Story 2 - 検証結果の表示（P1）
 
-- [ ] T020 [US2] backend/simulation/models.py に VerificationRun・SymbolResult・Trade モデルを作る（仮説を削除したら、その検証結果も削除されるようにする。FR-003）
-- [ ] T021 [US2] backend/simulation/engine.py に、トリガーの判定、逆指値・指値の約定判定（注文の有効時間＝60分、1時間足ではトリガーの次の1本の足だけ。FR-008、FR-008a、research 項目3）、売却（FR-008b）、株数の切り捨て、0株・未約定の扱い（FR-004a）、1銘柄につき同時に1つの取引（FR-004b）、売却する足のデータが欠けている場合の扱い（FR-008b）を作る
-- [ ] T022 [US2] backend/simulation/engine.py に、銘柄ごとの結果と全銘柄合計の計算を作る（FR-007）
-- [ ] T023 [US2] データが取れない銘柄・夜間の取引を、検証不可として扱う処理と、一部の日だけデータが取れない場合に、データがある分だけで検証し、欠けている日があることを表示する処理を作る（FR-009）
+- [X] T020 [US2] backend/simulation/models.py に VerificationRun・SymbolResult・Trade モデルを作る（仮説を削除したら、その検証結果も削除されるようにする。FR-003）
+- [X] T021 [US2] backend/simulation/engine.py に、トリガーの判定、逆指値・指値の約定判定（注文の有効時間＝60分、1時間足ではトリガーの次の1本の足だけ。FR-008、FR-008a、research 項目3）、売却（FR-008b）、株数の切り捨て、0株・未約定の扱い（FR-004a）、1銘柄につき同時に1つの取引（FR-004b）、売却する足のデータが欠けている場合の扱い（FR-008b）、決算発表時刻を含む1時間足がない場合のトリガー不成立（FR-025）を作る
+- [X] T022 [US2] backend/simulation/engine.py に、銘柄ごとの結果と全銘柄合計の計算を作る（FR-007）
+- [X] T023 [US2] データが取れない銘柄・夜間の取引を、検証不可として扱う処理と、一部の日だけデータが取れない場合に、データがある分だけで検証し、欠けている日があることを表示する処理を作る（FR-009）
 - [ ] T024 [US2] backend/simulation/views.py に、検証の API を作る（データ取得 → シミュレーション → 問題点 → AI 提案。Gemini が失敗したら検証全体を失敗にする）
-- [ ] T025 [P] [US2] frontend/src/components/VerifyForm.tsx に、銘柄（複数）・期間・購入金額の入力と [検証] ボタンを作る
-- [ ] T026 [US2] frontend/src/components/ResultPanel.tsx に、右セクションの検証結果（仮説・期間・総取引回数・損益額、銘柄ごと・合計）を作る
-- [ ] T027 [US2] 検証が失敗したときのエラー文の表示を作る
+- [X] T025 [P] [US2] frontend/src/components/VerifyForm.tsx に、銘柄（複数）・期間・購入金額の入力と [検証] ボタンを作る
+- [X] T026 [US2] frontend/src/components/ResultPanel.tsx に、右セクションの検証結果（仮説・期間・総取引回数・損益額、銘柄ごと・合計）を作る
+- [X] T027 [US2] 検証が失敗したときのエラー文の表示を作る
 
 ## Phase 5: User Story 3 - 問題点の提示（P2）
 

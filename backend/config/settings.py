@@ -149,3 +149,6 @@ REST_FRAMEWORK = {
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
 # 使う Gemini のモデル（無料枠のある Flash 系。上限は Google AI Studio で確認する）
 GEMINI_MODEL = os.environ.get('GEMINI_MODEL') or 'gemini-3.5-flash'
+
+# Alpha Vantage API（決算発表の時刻が取れない回の区分を調べる。無料枠のみ使う）
+ALPHAVANTAGE_API_KEY = os.environ.get('ALPHAVANTAGE_API_KEY', '')

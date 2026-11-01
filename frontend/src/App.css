@@ -213,3 +213,125 @@ input[type='number'] {
   color: var(--text-muted);
   font-size: 0.9rem;
 }
+
+/* ---------- 検証（右セクション） ---------- */
+.verify-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+  min-width: 0;
+}
+
+.verify-form .field label {
+  font-weight: 600;
+  font-size: 0.925rem;
+}
+
+.verify-form select,
+.verify-form input[type='text'] {
+  width: 100%;
+}
+
+.verify-form input[type='number'] {
+  width: 12em;
+}
+
+.field-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.hint {
+  margin: 0 0 10px;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.verify-error {
+  margin-top: 12px;
+}
+
+.result-panel {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.result-panel h3 {
+  margin: 20px 0 8px;
+  font-size: 1rem;
+}
+
+.result-summary {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 6px 16px;
+  margin: 0 0 8px;
+}
+
+.result-summary > dt {
+  color: var(--text-muted);
+}
+
+.result-summary > dd {
+  margin: 0;
+}
+
+.result-summary .total {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.pnl.positive {
+  color: var(--positive);
+}
+
+.pnl.negative {
+  color: var(--danger);
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.9rem;
+}
+
+th,
+td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+  white-space: nowrap;
+}
+
+th:first-child,
+td:first-child,
+thead th {
+  text-align: left;
+}
+
+.unavailable {
+  color: var(--text-muted);
+  text-align: left;
+}
+
+.missing-dates {
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.trades {
+  margin-top: 12px;
+}
+
+.trades summary {
+  cursor: pointer;
+  font-weight: 600;
+}

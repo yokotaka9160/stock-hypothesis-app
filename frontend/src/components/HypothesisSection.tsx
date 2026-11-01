@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useState } from 'react'
-import { ApiError } from '../api/client'
+import { useState } from 'react'
+import { messageOf } from '../api/client'
 import {
   createHypothesis,
   deleteHypothesis,
-  listHypotheses,
   parseHypothesis,
   updateHypothesis,
   suggestionOf,
@@ -15,18 +14,22 @@ import { HypothesisForm } from './HypothesisForm'
 import { HypothesisList } from './HypothesisList'
 import { ParsedConfirm } from './ParsedConfirm'
 
-function messageOf(e: unknown): string {
-  return e instanceof ApiError ? e.message : 'エラーが発生しました'
-}
-
 /**
  * 左セクションの仮説の部分（User Story 1）
  * 入力 → [保存] で読み取り → 確認画面で確認・書き換え → 保存、の順に進む（FR-017、FR-021）。
  * 編集も同じ流れで、文章をもう一度読み取ってから保存する（FR-022）。
  */
-export function HypothesisSection() {
-  const [hypotheses, setHypotheses] = useState<Hypothesis[]>([])
-  const [loadError, setLoadError] = useState<string | null>(null)
+interface Props {
+  hypotheses: Hypothesis[]
+  loadError: string | null
+  /** 仮説を保存・削除したあとに、一覧を読み込み直す */
+  onChanged: () => Promise<void>
+  /** 仮説を削除したとき */
+  onDeleted: (id: number) => void
+}
+
+export function HypothesisSection({ hypotheses, loadError, onChanged, onDeleted }: Props) {
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const [editing, setEditing] = useState<Hypothesis | null>(null)
   const [draftText, setDraftText] = useState('')
@@ -39,30 +42,6 @@ export function HypothesisSection() {
   const [formError, setFormError] = useState<string | null>(null)
   const [suggestion, setSuggestion] = useState<Suggestion | null>(null)
   const [confirmError, setConfirmError] = useState<string | null>(null)
-
-  const reload = useCallback(async () => {
-    try {
-      setHypotheses(await listHypotheses())
-      setLoadError(null)
-    } catch (e) {
-      setLoadError(messageOf(e))
-    }
-  }, [])
-
-  // 画面を開いたときに、保存済みの仮説を読み込む（FR-002）
-  useEffect(() => {
-    let cancelled = false
-    listHypotheses()
-      .then((items) => {
-        if (!cancelled) setHypotheses(items)
-      })
-      .catch((e: unknown) => {
-        if (!cancelled) setLoadError(messageOf(e))
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [])
 
   const resetForm = (text: string, target: Hypothesis | null) => {
     setEditing(target)
@@ -85,7 +64,7 @@ export function HypothesisSection() {
     } catch (e) {
       // 読み取れない・範囲外・Gemini の失敗の場合は保存しない（FR-018）。範囲外なら補った文章を提案する（FR-026）
       setFormError(messageOf(e))
-      setSuggestion(e instanceof ApiError ? suggestionOf(e.data) : null)
+      setSuggestion(suggestionOf(e))
     } finally {
       setIsParsing(false)
     }
@@ -102,7 +81,7 @@ export function HypothesisSection() {
         await createHypothesis(pending.text, parsed)
       }
       resetForm('', null)
-      await reload()
+      await onChanged()
     } catch (e) {
       setConfirmError(messageOf(e))
     } finally {
@@ -113,12 +92,14 @@ export function HypothesisSection() {
   const handleDelete = async (hypothesis: Hypothesis) => {
     // 仮説を削除すると、その仮説の検証結果も一緒に削除される（FR-003）
     if (!window.confirm('仮説を削除すると、検証結果も削除されますが本当に削除しますか？')) return
+    setDeleteError(null)
     try {
       await deleteHypothesis(hypothesis.id)
       if (editing?.id === hypothesis.id) resetForm('', null)
-      await reload()
+      onDeleted(hypothesis.id)
+      await onChanged()
     } catch (e) {
-      setLoadError(messageOf(e))
+      setDeleteError(messageOf(e))
     }
   }
 
@@ -150,9 +131,9 @@ export function HypothesisSection() {
       )}
 
       <h3 className="list-title">保存した仮説</h3>
-      {loadError && (
+      {(loadError || deleteError) && (
         <p className="form-error" role="alert">
-          {loadError}
+          {loadError ?? deleteError}
         </p>
       )}
       <HypothesisList
