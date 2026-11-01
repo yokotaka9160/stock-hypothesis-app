@@ -1,4 +1,5 @@
 import './App.css'
+import { HypothesisSection } from './components/HypothesisSection'
 
 function App() {
   return (
@@ -10,7 +11,7 @@ function App() {
         {/* 左セクション：仮説の入力・一覧と、検証仮説の下に問題点（理由）・改善案 */}
         <section className="panel panel-left" aria-labelledby="left-title">
           <h2 id="left-title">仮説</h2>
-          <p className="empty">まだ仮説がありません。</p>
+          <HypothesisSection />
         </section>
         {/* 右セクション：検証の条件と検証結果 */}
         <section className="panel panel-right" aria-labelledby="right-title">

@@ -49,3 +49,167 @@
     padding: 16px;
   }
 }
+
+/* ---------- 共通の部品 ---------- */
+button {
+  padding: 6px 14px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+button.secondary {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
+}
+
+button.danger {
+  background: transparent;
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+textarea,
+input,
+select {
+  font: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+textarea {
+  width: 100%;
+  resize: vertical;
+}
+
+input[type='number'] {
+  width: 7em;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.form-actions,
+.item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.form-error,
+.field-error {
+  color: var(--danger);
+}
+
+.form-error {
+  margin: 8px 0 0;
+}
+
+.field-error {
+  display: block;
+  font-size: 0.875rem;
+}
+
+/* ---------- 仮説 ---------- */
+.hypothesis-section h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.list-title {
+  margin-top: 24px !important;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.parsed-confirm {
+  padding: 12px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+}
+
+.confirm-text,
+.hypothesis-text {
+  margin: 0 0 8px;
+  white-space: pre-wrap;
+}
+
+.parsed-items {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 4px 12px;
+  margin: 0;
+  font-size: 0.925rem;
+}
+
+.parsed-items dt {
+  color: var(--text-muted);
+}
+
+.parsed-items dd {
+  margin: 0;
+}
+
+.parsed-row {
+  display: contents;
+}
+
+.hypothesis-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hypothesis-item {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.hypothesis-item.editing {
+  border-color: var(--accent);
+}
+
+/* 範囲外のときの提案（FR-026） */
+.suggestion {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px dashed var(--accent);
+  border-radius: 8px;
+}
+
+.suggestion p {
+  margin: 0 0 6px;
+}
+
+.suggestion-title {
+  font-weight: 600;
+}
+
+.suggestion-text {
+  white-space: pre-wrap;
+}
+
+.suggestion-note {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}

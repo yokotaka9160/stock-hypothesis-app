@@ -5,11 +5,14 @@ const BASE_PATH = '/api'
 /** backend がエラーを返したとき、または通信できなかったときのエラー */
 export class ApiError extends Error {
   readonly status: number
+  /** backend が返したエラー応答の本体（エラー文以外の情報を取り出すため） */
+  readonly data: unknown
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, data: unknown = null) {
     super(message)
     this.name = 'ApiError'
     this.status = status
+    this.data = data
   }
 }
 
@@ -33,7 +36,7 @@ async function request<T>(method: Method, path: string, body?: unknown): Promise
 
   const data: unknown = await response.json().catch(() => null)
   if (!response.ok) {
-    throw new ApiError(response.status, errorMessage(data, response.status))
+    throw new ApiError(response.status, errorMessage(data, response.status), data)
   }
   return data as T
 }

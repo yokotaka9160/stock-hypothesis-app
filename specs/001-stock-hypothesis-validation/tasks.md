@@ -24,16 +24,18 @@
 
 ## Phase 3: User Story 1 - 仮説の保存・編集・削除（P1）
 
-- [ ] T014 [US1] backend/hypotheses/models.py に Hypothesis（text・parsed）モデルを作る
-- [ ] T015 [US1] backend/hypotheses/parser.py に、Gemini で文章を読み取り、FR-025 の範囲かどうかを確認する処理を作る（範囲外・失敗はエラー。FR-018）
-- [ ] T016 [US1] backend/hypotheses/views.py に、読み取り・保存・一覧・編集（もう一度読み取る）・削除の API を作る
-- [ ] T017 [P] [US1] frontend/src/components/HypothesisForm.tsx に、例文付きの入力欄と [保存] ボタンを作る
-- [ ] T018 [US1] frontend/src/components/ParsedConfirm.tsx に、読み取り結果の確認画面を作る（% と購入方法を書き換えられる。FR-021）
-- [ ] T019 [US1] frontend/src/components/HypothesisList.tsx に、文章と読み取り結果の両方を表示する一覧を作る（FR-024）
+- [X] T014 [US1] backend/hypotheses/models.py に Hypothesis（text・parsed）モデルを作る
+- [X] T015 [US1] backend/hypotheses/parser.py に、Gemini で文章を読み取り、FR-025 の範囲かどうかを確認する処理を作る（範囲外・失敗はエラー。FR-018）
+- [X] T016 [US1] backend/hypotheses/views.py に、読み取り・保存・一覧・編集（もう一度読み取る）・削除の API を作る
+- [X] T017 [P] [US1] frontend/src/components/HypothesisForm.tsx に、例文付きの入力欄と [保存] ボタンを作る
+- [X] T018 [US1] frontend/src/components/ParsedConfirm.tsx に、読み取り結果の確認画面を作る（% と購入方法を書き換えられる。FR-021）
+- [X] T019 [US1] frontend/src/components/HypothesisList.tsx に、文章と読み取り結果の両方を表示する一覧を作る（FR-024）
+- [X] T042 [US1] 読み取りで範囲外と判定されたときに、範囲に合うように補った仮説の文章と説明を提案し、入力欄に入れられるようにする（backend/hypotheses/parser.py・views.py、frontend/src/components/HypothesisForm.tsx。FR-026）
+- [X] T043 [US1] トリガー条件の四半期を任意にする（文章で第1〜第4を指定、指定なしはすべての四半期。parser・確認画面・一覧の表示。FR-025）
 
 ## Phase 4: User Story 2 - 検証結果の表示（P1）
 
-- [ ] T020 [US2] backend/simulation/models.py に VerificationRun・SymbolResult・Trade モデルを作る
+- [ ] T020 [US2] backend/simulation/models.py に VerificationRun・SymbolResult・Trade モデルを作る（仮説を削除したら、その検証結果も削除されるようにする。FR-003）
 - [ ] T021 [US2] backend/simulation/engine.py に、トリガーの判定、逆指値・指値の約定判定（注文の有効時間＝60分、1時間足ではトリガーの次の1本の足だけ。FR-008、FR-008a、research 項目3）、売却（FR-008b）、株数の切り捨て、0株・未約定の扱い（FR-004a）、1銘柄につき同時に1つの取引（FR-004b）、売却する足のデータが欠けている場合の扱い（FR-008b）を作る
 - [ ] T022 [US2] backend/simulation/engine.py に、銘柄ごとの結果と全銘柄合計の計算を作る（FR-007）
 - [ ] T023 [US2] データが取れない銘柄・夜間の取引を、検証不可として扱う処理と、一部の日だけデータが取れない場合に、データがある分だけで検証し、欠けている日があることを表示する処理を作る（FR-009）
