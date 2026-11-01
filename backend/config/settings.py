@@ -147,3 +147,5 @@ REST_FRAMEWORK = {
 
 # Gemini API（APIキーはコードに書かず、環境変数で渡す）
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+# 使う Gemini のモデル（無料枠のある Flash 系。上限は Google AI Studio で確認する）
+GEMINI_MODEL = os.environ.get('GEMINI_MODEL') or 'gemini-3.5-flash'

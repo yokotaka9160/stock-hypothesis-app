@@ -14,13 +14,13 @@
 
 ## Phase 2: Foundational（全ストーリーの土台）
 
-- [ ] T007 backend/marketdata/models.py に PriceBar（1時間足）モデルを作る
-- [ ] T008 [P] backend/marketdata/models.py に EarningsEvent（決算発表）モデルを作る
-- [ ] T009 backend/marketdata/sessions.py に、時間帯（市場前／市場中／市場後／夜間）の判定を作る（夏時間・冬時間に対応。research 項目4）
-- [ ] T010 backend/marketdata/services.py に、DB にない株価データ・決算発表データだけを yfinance から取得して保存する処理を作る（保存済みのデータは上書きしない。決算発表の時刻が取れない場合は、市場前 8:00・市場後 16:00 とみなす。FR-014）
-- [ ] T011 [P] backend/advisor/client.py に、Gemini を呼び出す共通処理を作る（60秒で応答なし、無料枠の上限はエラーとして扱う）
-- [ ] T012 [P] frontend/src/api/client.ts に、backend との通信の共通処理を作る
-- [ ] T013 [P] frontend/src/App.tsx に、左右2分割の画面レイアウトを作る
+- [X] T007 backend/marketdata/models.py に PriceBar（1時間足）モデルを作る
+- [X] T008 [P] backend/marketdata/models.py に EarningsEvent（決算発表）モデルを作る
+- [X] T009 backend/marketdata/sessions.py に、時間帯（市場前／市場中／市場後／夜間）の判定を作る（夏時間・冬時間に対応。research 項目4）
+- [X] T010 backend/marketdata/services.py に、DB にない株価データ・決算発表データだけを yfinance から取得して保存する処理を作る（保存済みのデータは上書きしない。決算発表の時刻が取れない場合は、市場前 8:00・市場後 16:00 とみなす。FR-014）
+- [X] T011 [P] backend/advisor/client.py に、Gemini を呼び出す共通処理を作る（60秒で応答なし、無料枠の上限はエラーとして扱う）
+- [X] T012 [P] frontend/src/api/client.ts に、backend との通信の共通処理を作る
+- [X] T013 [P] frontend/src/App.tsx に、左右2分割の画面レイアウトを作る
 
 ## Phase 3: User Story 1 - 仮説の保存・編集・削除（P1）
 
