@@ -1,0 +1,417 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-header {
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+/* 左右2分割。狭い画面では縦に並べる */
+.app-main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  padding: 16px 24px;
+}
+
+.panel {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  overflow-y: auto;
+}
+
+.panel h2 {
+  margin: 0 0 12px;
+  font-size: 1.1rem;
+}
+
+.empty {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+@media (max-width: 800px) {
+  .app-main {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 16px;
+  }
+}
+
+/* ---------- 共通の部品 ---------- */
+button {
+  padding: 6px 14px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+button.secondary {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
+}
+
+button.danger {
+  background: transparent;
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+textarea,
+input,
+select {
+  font: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+textarea {
+  width: 100%;
+  resize: vertical;
+}
+
+input[type='number'] {
+  width: 7em;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.form-actions,
+.item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.form-error,
+.field-error {
+  color: var(--danger);
+}
+
+.form-error {
+  margin: 8px 0 0;
+}
+
+.field-error {
+  display: block;
+  font-size: 0.875rem;
+}
+
+/* ---------- 仮説 ---------- */
+.hypothesis-section h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.list-title {
+  margin-top: 24px !important;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.parsed-confirm {
+  padding: 12px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+}
+
+.confirm-text,
+.hypothesis-text {
+  margin: 0 0 8px;
+  white-space: pre-wrap;
+}
+
+.parsed-items {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 4px 12px;
+  margin: 0;
+  font-size: 0.925rem;
+}
+
+.parsed-items dt {
+  color: var(--text-muted);
+}
+
+.parsed-items dd {
+  margin: 0;
+}
+
+.parsed-row {
+  display: contents;
+}
+
+.hypothesis-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hypothesis-item {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.hypothesis-item.editing {
+  border-color: var(--accent);
+}
+
+/* 範囲外のときの提案（FR-026） */
+.suggestion {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px dashed var(--accent);
+  border-radius: 8px;
+}
+
+.suggestion p {
+  margin: 0 0 6px;
+}
+
+.suggestion-title {
+  font-weight: 600;
+}
+
+.suggestion-text {
+  white-space: pre-wrap;
+}
+
+.suggestion-note {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* ---------- 検証（右セクション） ---------- */
+.verify-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+  min-width: 0;
+}
+
+.verify-form .field label {
+  font-weight: 600;
+  font-size: 0.925rem;
+}
+
+.verify-form select,
+.verify-form input[type='text'] {
+  width: 100%;
+}
+
+.verify-form input[type='number'] {
+  width: 12em;
+}
+
+.field-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.hint {
+  margin: 0 0 10px;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.verify-error {
+  margin-top: 12px;
+}
+
+.result-panel {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.result-panel h3 {
+  margin: 20px 0 8px;
+  font-size: 1rem;
+}
+
+.result-summary {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 6px 16px;
+  margin: 0 0 8px;
+}
+
+.result-summary > dt {
+  color: var(--text-muted);
+}
+
+.result-summary > dd {
+  margin: 0;
+}
+
+.result-summary .total {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.pnl.positive {
+  color: var(--positive);
+}
+
+.pnl.negative {
+  color: var(--danger);
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.9rem;
+}
+
+th,
+td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+  white-space: nowrap;
+}
+
+th:first-child,
+td:first-child,
+thead th {
+  text-align: left;
+}
+
+.unavailable {
+  color: var(--text-muted);
+  text-align: left;
+}
+
+.missing-dates {
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.trades {
+  margin-top: 12px;
+}
+
+.trades summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* 検証仮説の下の問題点・改善案（FR-010） */
+.issue-panel {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.issue-panel h4 {
+  margin: 12px 0 6px;
+  font-size: 0.95rem;
+}
+
+.issue-run {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.issue-list,
+.improvement-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.issue-list li,
+.improvement-list li {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.issue-list li {
+  border-left: 3px solid var(--danger);
+}
+
+.improvement-list li {
+  border-left: 3px solid var(--accent);
+}
+
+.issue-list p,
+.improvement-list p {
+  margin: 4px 0 0;
+}
+
+.issue-aspect,
+.improvement-kind {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.issue-aspect {
+  color: var(--danger);
+}
+
+.improvement-kind {
+  color: var(--accent);
+}
+
+.improvement-kind.unverified {
+  color: var(--text-muted);
+}
+
+.no-issue {
+  margin: 0;
+}
+
+.improvement-result {
+  font-size: 0.9rem;
+}
+
+.improvement-note {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}

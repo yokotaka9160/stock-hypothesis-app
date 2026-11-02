@@ -1,0 +1,23 @@
+[project]
+name = "stock-hypothesis-backend"
+version = "0.1.0"
+description = "株式取引 仮説検証（バックエンド）"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "django>=5.2,<6",
+    "djangorestframework>=3.15",
+    "google-genai>=2.34.0",
+    "holidays>=0.107",
+    "pandas>=3.1.0",
+    "python-dotenv>=1.0",
+    "yfinance>=1.7.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-django>=4.9",
+]
+
+[tool.uv]
+package = false
